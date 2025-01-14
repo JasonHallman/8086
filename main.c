@@ -52,7 +52,7 @@ int main(int argc, char* argv[]) {
 
   while ((b = fgetc(file)) != EOF) {
 
-    /* Check for mov */
+    /* Register to Register/Memory */
     if ((b & 0b11111100) == 0b10001000) {
       printf("mov ");
 
@@ -61,13 +61,53 @@ int main(int argc, char* argv[]) {
 
       b = fgetc(file);
 
-      /* int mod = b >> 6; */
+      int mod = b >> 6;
       int reg = (b & 0b00111000) >> 3;
-      /* int reg = (b << 2) >> 5; */
-      int r_m  = b & 0b00000111;
+      int r_m = b & 0b00000111;
 
       printf("%s, ", decode_register(W, r_m));
       printf("%s\n", decode_register(W, reg));
+
+    /* Immediate to Register/Memory */
+    } else if ((b & 0b11111110) == 0b11000110) {
+      printf("mov ");
+
+      int W = b & 1;
+
+      b = fgetc(file);
+
+      int mod = b >> 6;
+      int r_m = b & 0b00000111;
+
+
+    /* Immediate to Register */
+    } else if ((b & 0b11110000) == 0b10110000) {
+      printf("mov ");
+
+      int W = (b >> 3) & 1;
+      int reg = (b & 0b00000111);
+
+      printf("%s, ", decode_register(W, reg));
+      
+      if (W == 1) {
+        char hi = fgetc(file);
+        char lo = fgetc(file);
+
+        int16_t immediate = (hi << 8) | lo;
+
+        printf("%d\n", immediate);
+
+      } else {
+        printf("%d\n", fgetc(file));
+      }
+    /* Memory to Accumulator */
+    } else if ((b & 0b11111110) == 0b10100000) {
+      int W = b & 1;
+
+    /* Accumulator to Memory */
+    } else if ((b & 0b11111110) == 0b10100010) {
+      int W = b & 1;
+
     }
   }
 
