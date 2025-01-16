@@ -6,6 +6,14 @@ void print_bits(int num) {
   }
 }
 
+void print_regs(int D, char* reg, char* r_m) {
+  if (D == 0) {
+    printf("%s, %s\n", reg, r_m);
+  } else {
+    printf("%s, %s\n", r_m, reg);
+  }
+}
+
 char* decode_register(int W, int REG) {
   if (W == 0) {
     switch (REG) {
@@ -56,7 +64,7 @@ int main(int argc, char* argv[]) {
     if ((b & 0b11111100) == 0b10001000) {
       printf("mov ");
 
-      /* int D = (b >> 1) & 1; */
+      int D = (b >> 1) & 1;
       int W = b & 1;
 
       b = fgetc(file);
@@ -65,8 +73,23 @@ int main(int argc, char* argv[]) {
       int reg = (b & 0b00111000) >> 3;
       int r_m = b & 0b00000111;
 
-      printf("%s, ", decode_register(W, r_m));
-      printf("%s\n", decode_register(W, reg));
+      if (mod == 0b11) {
+        print_regs(D, reg, r_m);
+
+      } else if (mod == 0b01) {
+        char disp_lo = fgetc(file);
+
+      } else if (mod == 0b10) {
+        char disp_lo = fgetc(file);
+        char disp_hi = fgetc(file);
+
+      } else if (mod == 0b00) {
+
+      } else {
+        printf("Invaild mod: ");
+        print_bits(mod);
+        return 2;
+      }
 
     /* Immediate to Register/Memory */
     } else if ((b & 0b11111110) == 0b11000110) {
