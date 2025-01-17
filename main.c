@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <string.h>
 
 void print_bits(int num) {
   for ( int i = sizeof(num) - 1; i >= 0; i -= 1 ) {
@@ -12,6 +13,21 @@ void print_regs(int D, char* reg, char* r_m) {
   } else {
     printf("%s, %s\n", r_m, reg);
   }
+}
+
+/* Decode effective address calculation */
+char* decode_ea(int r_m) {
+  switch (r_m) {
+    case 0b000: return "bx + si";
+    case 0b001: return "bx + di";
+    case 0b010: return "bp + si";
+    case 0b011: return "bp + di";
+    case 0b100: return "si";
+    case 0b101: return "di";
+    case 0b110: return "bp";
+    case 0b111: return "bx";
+  }
+  return "ERROR";
 }
 
 char* decode_register(int W, int REG) {
@@ -38,7 +54,7 @@ char* decode_register(int W, int REG) {
       case 0b111: return "di";
     }
   }
-  return NULL;
+  return "ERROR";
 }
 
 int main(int argc, char* argv[]) {
@@ -74,21 +90,36 @@ int main(int argc, char* argv[]) {
       int r_m = b & 0b00000111;
 
       if (mod == 0b11) {
-        print_regs(D, reg, r_m);
-
-      } else if (mod == 0b01) {
-        char disp_lo = fgetc(file);
-
-      } else if (mod == 0b10) {
-        char disp_lo = fgetc(file);
-        char disp_hi = fgetc(file);
-
-      } else if (mod == 0b00) {
+        print_regs(D, decode_register(W, reg), decode_register(W, r_m));
 
       } else {
-        printf("Invaild mod: ");
-        print_bits(mod);
-        return 2;
+        char* ea_calc = decode_ea(r_m);
+
+        if (mod == 0b01) {
+          char disp_lo = fgetc(file);
+
+          char ea_string[1 + strlen(ea_calc) + 3 + 1 + 2];
+
+          snprintf(ea_string, sizeof(ea_string), "[%s + %d]", ea_calc);
+
+          print_regs(D, decode_register(W, reg), ea_string);
+
+        } else if (mod == 0b10) {
+          char disp_lo = fgetc(file);
+          char disp_hi = fgetc(file);
+
+
+
+        } else if (mod == 0b00) {
+          if (r_m == 0b110) {
+
+          }
+
+        } else {
+          printf("Invaild mod: ");
+          print_bits(mod);
+          return 2;
+        }
       }
 
     /* Immediate to Register/Memory */
